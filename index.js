@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
+const connectDB = require('./config/database');
 
 dotenv.config();
 
@@ -78,8 +79,14 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-});
+// Connect to MongoDB before starting the server
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/health`);
+  });
+};
+
+startServer();
