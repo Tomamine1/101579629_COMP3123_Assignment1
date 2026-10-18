@@ -7,6 +7,7 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
 const userRoutes = require('./routes/userRoutes');
+const employeeRoutes = require('./routes/employeeRoutes');
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/emp', employeeRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
