@@ -6,13 +6,13 @@ const fs = require('fs');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Local application logs
 const logDirectory = path.join(__dirname, 'logs');
 fs.mkdirSync(logDirectory, { recursive: true });
 
@@ -21,15 +21,11 @@ const accessLogStream = fs.createWriteStream(
   { flags: 'a' }
 );
 
-// Security middleware
 app.use(helmet());
 app.use(express.json({ limit: '10kb' }));
-
-// HTTP request logging
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use(morgan('dev'));
 
-// General API rate limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 100,
@@ -43,7 +39,6 @@ const apiLimiter = rateLimit({
 
 app.use('/api', apiLimiter);
 
-// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -52,7 +47,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Handle unknown routes
+app.use('/api/v1/user', userRoutes);
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -60,7 +56,6 @@ app.use((req, res) => {
   });
 });
 
-// Central error handler
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
     return res.status(400).json({
@@ -79,7 +74,6 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Connect to MongoDB before starting the server
 const startServer = async () => {
   await connectDB();
 
